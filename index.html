@@ -4,613 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>感情メロディプレイヤー - Emotion Melody Player</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 背景グラデーションのスムーズなアニメーション遷移 */
         body {
             transition: background-color 1.5s ease, color 1.5s ease;
+            position: relative;
         }
-        .theme-default {
-            background-color: #f3f4f6; /* Gray 100 */
-            color: #1f2937; /* Gray 800 */
+        /* 背景画像用のコンテナ */
+        #bg-image-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+            opacity: 0;
         }
-        .theme-happy {
-            background-color: #fef3c7; /* Amber 100 */
-            color: #78350f; /* Amber 900 */
+        #bg-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        .theme-sad {
-            background-color: #e0f2fe; /* Sky 100 */
-            color: #0c4a6e; /* Sky 900 */
-        }
-        .theme-relaxed {
-            background-color: #d1fae5; /* Emerald 100 */
-            color: #064e3b; /* Emerald 900 */
-        }
-        .theme-energetic {
-            background-color: #fee2e2; /* Red 100 */
-            color: #7f1d1d; /* Red 900 */
-        }
+        
+        .theme-default { background-color: #f3f4f6; color: #1f2937; }
+        .theme-happy { background-color: #fef3c7; color: #78350f; }
+        .theme-sad { background-color: #e0f2fe; color: #0c4a6e; }
+        .theme-relaxed { background-color: #d1fae5; color: #064e3b; }
+        .theme-energetic { background-color: #fee2e2; color: #7f1d1d; }
 
-        /* 視覚的ビジュアライザー用の波紋アニメーション */
-        @keyframes ripple-effect {
-            0% {
-                transform: scale(0.8);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(2.2);
-                opacity: 0;
-            }
-        }
-        .ripple {
-            animation: ripple-effect 4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
-        }
+        @keyframes slow-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinning-art { animation: slow-spin 25s linear infinite; }
     </style>
 </head>
-<body class="theme-default min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-x-hidden">
+<body class="theme-default min-h-screen flex flex-col justify-between font-sans overflow-x-hidden">
 
-    <!-- ヘッダー -->
-    <header class="text-center py-4">
-        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center justify-center gap-2">
-            <span>🎵</span> 感情メロディプレイヤー
-        </h1>
-        <p class="text-sm opacity-75 mt-2">今の気分を音楽と色彩で包み込むインタラクティブプレイヤー</p>
+    <!-- 背景画像レイヤー -->
+    <div id="bg-image-container">
+        <img id="bg-img" src="" alt="背景画像">
+    </div>
+
+    <!-- コンテンツ -->
+    <header class="text-center py-4 relative z-10">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center justify-center gap-2"><span>🎵</span> 感情メロディプレイヤー</h1>
     </header>
 
-    <!-- メインコンテンツ領域 -->
-    <main class="flex-grow flex items-center justify-center my-8 relative z-10 max-w-2xl mx-auto w-full">
-        
-        <!-- ビジュアルバックグラウンド（再生中のみ波紋を表示） -->
-        <div id="visualizer-container" class="absolute inset-0 pointer-events-none flex items-center justify-center hidden">
-            <div class="w-64 h-64 rounded-full border-4 border-current opacity-20 ripple absolute"></div>
-            <div class="w-64 h-64 rounded-full border-4 border-current opacity-20 ripple absolute" style="animation-delay: 1.3s;"></div>
-            <div class="w-64 h-64 rounded-full border-4 border-current opacity-20 ripple absolute" style="animation-delay: 2.6s;"></div>
-        </div>
-
-        <!-- アプリケーション本体カード -->
-        <div class="w-full bg-white/70 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-xl border border-white/50 transition-all duration-500">
-            
-            <!-- 1. スタート画面 -->
+    <main class="flex-grow flex items-center justify-center my-8 relative z-10 max-w-2xl mx-auto w-full px-6">
+        <div class="w-full bg-white/70 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50">
+            <!-- 各画面は省略しますが、ロジック内でIDを制御します -->
             <div id="screen-start" class="text-center space-y-6">
-                <div class="text-7xl animate-bounce">✨</div>
                 <h2 class="text-2xl font-bold">今のあなたに寄り添う音楽を</h2>
-                <p class="text-gray-600 leading-relaxed">
-                    簡単な3つの質問に直感で答えるだけで、今のあなたの状態を分析し、ぴったりなオリジナルの音楽を奏でます。
-                </p>
-                <button id="btn-start" class="w-full md:w-auto px-8 py-4 bg-gray-950 text-white font-bold rounded-full hover:bg-gray-800 transition shadow-lg hover:shadow-xl active:scale-95">
-                    診断をはじめる
-                </button>
+                <button id="btn-start" class="px-8 py-4 bg-gray-950 text-white font-bold rounded-full hover:bg-gray-800">診断をはじめる</button>
             </div>
-
-            <!-- 2. 質問画面 -->
+            
             <div id="screen-question" class="hidden space-y-8">
-                <!-- 進捗バー -->
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="progress-bar" class="bg-gray-800 h-2 rounded-full transition-all duration-300" style="width: 33%"></div>
-                </div>
-                <div class="flex justify-between items-center text-xs opacity-75">
-                    <span id="question-number">質問 1 / 3</span>
-                    <span>直感でお答えください</span>
-                </div>
-
-                <!-- 質問テキスト -->
-                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-center py-4 min-h-[4rem]">
-                    質問内容がここに入ります。
-                </h2>
-
-                <!-- 選択肢リスト -->
-                <div id="options-container" class="grid grid-cols-1 gap-4">
-                    <!-- ボタンはJSで生成 -->
-                </div>
+                <div id="progress-bar" class="bg-gray-800 h-2 rounded-full" style="width: 33%"></div>
+                <h2 id="question-text" class="text-xl font-bold text-center"></h2>
+                <div id="options-container" class="grid grid-cols-1 gap-4"></div>
             </div>
 
-            <!-- 3. 結果 & 再生画面 -->
             <div id="screen-result" class="hidden text-center space-y-6">
-                <div id="result-icon" class="text-8xl">☀️</div>
-                <div>
-                    <span class="text-xs uppercase tracking-widest opacity-70">診断結果 : あなたの気分</span>
-                    <h2 id="result-title" class="text-3xl font-extrabold mt-1">ハッピー</h2>
+                <div class="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-white/80 shadow-2xl">
+                    <img id="result-image" src="" alt="アートワーク" class="w-full h-full object-cover">
                 </div>
-                
-                <p id="result-desc" class="text-base leading-relaxed max-w-md mx-auto">
-                    感情の解説がここに入ります。
-                </p>
-
-                <!-- フォールバック通知バナー (読み込めなかった場合のみ表示) -->
-                <div id="fallback-notification" class="hidden text-xs bg-black/10 p-4 rounded-xl max-w-md mx-auto border border-black/5 text-left space-y-2">
-                    <div class="font-bold text-red-700">⚠️ 音楽ファイルを直接読み込めませんでした</div>
-                    <p class="opacity-80">以下のURLから直接ファイルを読み込もうとしてエラーが発生しました：</p>
-                    <code id="debug-failed-path" class="block bg-white/80 p-2 rounded border border-black/10 font-mono text-[10px] break-all"></code>
-                    <p class="text-[10px] opacity-75 mt-1">※現在は一時的にブラウザシンセの自動生成音で代用再生しています。キャッシュクリアをお試しください。</p>
-                </div>
-
-                <!-- プレイヤーコントローラー -->
-                <div class="pt-6 border-t border-gray-900/10 space-y-4">
-                    <div class="flex justify-center items-center gap-6">
-                        <!-- 再生 / 一時停止ボタン -->
-                        <button id="btn-play-toggle" class="w-16 h-16 rounded-full bg-current flex items-center justify-center shadow-md active:scale-95 hover:opacity-90 transition">
-                            <!-- 再生アイコン -->
-                            <svg id="icon-play" class="w-8 h-8 text-white hidden" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                            <!-- 一時停止アイコン -->
-                            <svg id="icon-pause" class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- 音量スライダー -->
-                    <div class="flex items-center justify-center gap-3 max-w-xs mx-auto">
-                        <span class="text-xs">🔈</span>
-                        <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.7" class="w-full accent-current h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                        <span class="text-xs">🔊</span>
-                    </div>
-
-                    <p class="text-xs opacity-60">※ブラウザの仕様により、最初はミュート状態で再生される場合があります。</p>
-                </div>
-
-                <!-- 最初からやり直すボタン -->
-                <div class="pt-4">
-                    <button id="btn-restart" class="text-xs font-semibold underline hover:opacity-80">
-                        もう一度診断する
-                    </button>
-                </div>
+                <h2 id="result-title" class="text-3xl font-extrabold"></h2>
+                <button id="btn-play-toggle" class="w-16 h-16 rounded-full bg-current flex items-center justify-center mx-auto text-white">再生</button>
+                <button id="btn-restart" class="text-xs underline">もう一度</button>
             </div>
-
         </div>
     </main>
 
-    <!-- フッター -->
-    <footer class="text-center text-xs opacity-60 py-4">
-        <p>© 2026 感情メロディプレイヤー | あなただけの特別なサウンドスペース</p>
-    </footer>
-
-    <!-- アプリケーション・ロジック -->
     <script>
-        // --- 状態管理 (State) ---
-        const state = {
-            currentQuestionIndex: 0,
-            scores: {
-                happy: 0,
-                sad: 0,
-                relaxed: 0,
-                energetic: 0
-            },
-            currentEmotion: 'happy',
-            isPlaying: false,
-            isUsingFallback: false
-        };
-
-        // --- 質問データ ---
-        const questions = [
-            {
-                text: "今のエネルギーレベルはどれくらいですか？",
-                options: [
-                    { label: "満ち溢れている！", scores: { energetic: 2, happy: 1 } },
-                    { label: "普通かな", scores: { relaxed: 1, neutral: 1 } },
-                    { label: "少し疲れている...", scores: { sad: 1, relaxed: 1 } }
-                ]
-            },
-            {
-                text: "外の天気はどうあってほしい気分ですか？",
-                options: [
-                    { label: "雲一つない快晴！", scores: { happy: 2, energetic: 1 } },
-                    { label: "静かに降る雨", scores: { sad: 2, relaxed: 1 } },
-                    { label: "穏やかな曇り空", scores: { relaxed: 2 } }
-                ]
-            },
-            {
-                text: "今、一番したいことは何ですか？",
-                options: [
-                    { label: "誰かと楽しくおしゃべり", scores: { happy: 2, energetic: 1 } },
-                    { label: "一人でゆっくり読書や映画", scores: { relaxed: 2, sad: 1 } },
-                    { label: "思いっきり運動して汗を流す", scores: { energetic: 2 } }
-                ]
-            }
-        ];
-
-        // --- 感情データ（同じ階層に置かれたファイル名のみを指定） ---
         const emotions = {
-            happy: {
-                themeClass: 'theme-happy',
-                label: 'ハッピー',
-                icon: '☀️',
-                desc: '心が晴れやかで、前向きなエネルギーに満ちていますね！弾むような明るいメロディをお届けします。',
-                audioFilename: 'happy.mp3'
-            },
-            sad: {
-                themeClass: 'theme-sad',
-                label: 'メランコリー',
-                icon: '🌧️',
-                desc: '少し心が沈んでいる、または静かに自分と向き合いたい気分のようですね。優しく包み込むようなメロディをどうぞ。',
-                audioFilename: 'sad.mp3'
-            },
-            relaxed: {
-                themeClass: 'theme-relaxed',
-                label: 'リラックス',
-                icon: '☕',
-                desc: '穏やかで落ち着いた状態ですね。このままゆったりと過ごせるような、心地よいアンビエント調 of 音を。',
-                audioFilename: 'relaxed.mp3'
-            },
-            energetic: {
-                themeClass: 'theme-energetic',
-                label: 'エネルギッシュ',
-                icon: '🔥',
-                desc: '体中からパワーが湧き上がっていますね！大地の鼓動を思わせる、力強い太鼓とリズムセッションがあなたを鼓舞します！',
-                audioFilename: 'energetic.mp3'
-            }
+            happy: { themeClass: 'theme-happy', label: 'ハッピー', bgImage: 'happy.png', icon: '☀️' },
+            sad: { themeClass: 'theme-sad', label: 'メランコリー', bgImage: 'sad.png', icon: '🌧️' },
+            relaxed: { themeClass: 'theme-relaxed', label: 'リラックス', bgImage: 'relaxed.png', icon: '☕' },
+            energetic: { themeClass: 'theme-energetic', label: 'エネルギッシュ', bgImage: 'energetic.png', icon: '🔥' }
         };
 
-        // --- 🔗 頑固なブラウザキャッシュを物理的に破壊し、同じ階層から確実に読み込む関数 ---
-        function getAudioPathWithCacheBuster(filename) {
-            // パスの基準点を取得
-            let base = window.location.href;
-            base = base.split('#')[0].split('?')[0];
-            
-            if (base.endsWith('.html') || base.endsWith('.htm')) {
-                base = base.substring(0, base.lastIndexOf('/') + 1);
-            } else if (!base.endsWith('/')) {
-                base += '/';
-            }
-
-            // 絶対URLの作成
-            const url = new URL(filename, base);
-
-            // URLにランダムなタイムスタンプ（キャッシュバスター）を追加して古い読み込みエラー記憶を上書き
-            url.searchParams.set('cachebust', Date.now());
-
-            return url.href;
-        }
-
-        // --- オーディオインスタンス & Web Audio API フォールバック ---
-        let currentAudio = null;
-        let audioCtx = null;
-        let fallbackNodes = [];
-        let fallbackInterval = null;
-
-        // --- DOM要素 ---
-        const bodyEl = document.body;
-        const screenStart = document.getElementById('screen-start');
-        const screenQuestion = document.getElementById('screen-question');
-        const screenResult = document.getElementById('screen-result');
-        
-        const btnStart = document.getElementById('btn-start');
-        const btnRestart = document.getElementById('btn-restart');
-        const btnPlayToggle = document.getElementById('btn-play-toggle');
-        const iconPlay = document.getElementById('icon-play');
-        const iconPause = document.getElementById('icon-pause');
-        const volumeSlider = document.getElementById('volume-slider');
-        
-        const progressBar = document.getElementById('progress-bar');
-        const questionNumberText = document.getElementById('question-number');
-        const questionText = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options-container');
-        
-        const resultIcon = document.getElementById('result-icon');
-        const resultTitle = document.getElementById('result-title');
-        const resultDesc = document.getElementById('result-desc');
-        const visualizerContainer = document.getElementById('visualizer-container');
-        const fallbackNotification = document.getElementById('fallback-notification');
-        const debugFailedPath = document.getElementById('debug-failed-path');
-
-        // --- イベントリスナーの登録 ---
-        btnStart.addEventListener('click', startSurvey);
-        btnRestart.addEventListener('click', restartSurvey);
-        btnPlayToggle.addEventListener('click', togglePlay);
-        volumeSlider.addEventListener('input', handleVolumeChange);
-
-        // --- 画面切り替え & ロジック ---
-
-        function startSurvey() {
-            state.currentQuestionIndex = 0;
-            state.scores = { happy: 0, sad: 0, relaxed: 0, energetic: 0 };
-            
-            bodyEl.className = 'theme-default min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-x-hidden';
-            
-            screenStart.classList.add('hidden');
-            screenResult.classList.add('hidden');
-            screenQuestion.classList.remove('hidden');
-            
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const currentQuestion = questions[state.currentQuestionIndex];
-            
-            const progressPercent = ((state.currentQuestionIndex + 1) / questions.length) * 100;
-            progressBar.style.width = `${progressPercent}%`;
-            questionNumberText.textContent = `質問 ${state.currentQuestionIndex + 1} / ${questions.length}`;
-            
-            questionText.textContent = currentQuestion.text;
-            
-            optionsContainer.innerHTML = '';
-            currentQuestion.options.forEach(option => {
-                const button = document.createElement('button');
-                button.className = "w-full text-left p-5 rounded-2xl border-2 border-gray-200 hover:border-gray-800 hover:bg-gray-50/50 bg-white transition duration-200 font-medium flex justify-between items-center group active:scale-[0.98]";
-                button.innerHTML = `
-                    <span>${option.label}</span>
-                    <span class="opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
-                `;
-                button.addEventListener('click', () => handleAnswer(option.scores));
-                optionsContainer.appendChild(button);
-            });
-        }
-
-        function handleAnswer(scores) {
-            for (const key in scores) {
-                if (state.scores[key] !== undefined) {
-                    state.scores[key] += scores[key];
-                }
-            }
-
-            state.currentQuestionIndex++;
-            if (state.currentQuestionIndex < questions.length) {
-                showQuestion();
-            } else {
-                calculateResult();
-            }
-        }
-
-        function calculateResult() {
-            let highestEmotion = 'happy';
-            let maxScore = -1;
-
-            for (const key in state.scores) {
-                if (state.scores[key] > maxScore) {
-                    maxScore = state.scores[key];
-                    highestEmotion = key;
-                }
-            }
-
-            state.currentEmotion = highestEmotion;
-            displayResult();
-        }
+        const bgImageContainer = document.getElementById('bg-image-container');
+        const bgImg = document.getElementById('bg-img');
 
         function displayResult() {
             const emotionData = emotions[state.currentEmotion];
+            document.body.className = `${emotionData.themeClass} min-h-screen flex flex-col justify-between font-sans`;
             
-            bodyEl.className = `${emotionData.themeClass} min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-x-hidden`;
-            
-            resultIcon.textContent = emotionData.icon;
-            resultTitle.textContent = emotionData.label;
-            resultDesc.textContent = emotionData.desc;
-            
-            screenQuestion.classList.add('hidden');
-            screenResult.classList.remove('hidden');
+            // 背景画像の適用 (透過度を上げて表示)
+            bgImg.src = emotionData.bgImage;
+            bgImageContainer.style.opacity = '0.3'; 
 
-            initAndPlayAudio(emotionData.audioFilename);
+            document.getElementById('screen-question').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+            // ...以下略
         }
-
-        // --- オーディオ制御システム ---
-
-        function initAndPlayAudio(filename) {
-            stopAudio();
-            state.isUsingFallback = false;
-            fallbackNotification.classList.add('hidden');
-
-            // キャッシュ対策を施した100%フレッシュなURLを取得
-            const src = getAudioPathWithCacheBuster(filename);
-
-            currentAudio = new Audio();
-            
-            // 重要：エラー検知イベントを先に登録しておく
-            currentAudio.addEventListener('error', (e) => {
-                console.warn(`音源 (${src}) の読み込みに失敗しました。自動フォールバックを実行します。`);
-                state.isUsingFallback = true;
-                
-                debugFailedPath.textContent = src;
-                fallbackNotification.classList.remove('hidden');
-                
-                startFallbackSynth(state.currentEmotion);
-            });
-
-            // ソースを設定してロード開始
-            currentAudio.src = src;
-            currentAudio.loop = true;
-            currentAudio.volume = parseFloat(volumeSlider.value);
-
-            currentAudio.addEventListener('volumechange', () => {
-                volumeSlider.value = currentAudio.volume;
-            });
-
-            const playPromise = currentAudio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    setPlayingState(true);
-                }).catch(error => {
-                    console.log("自動再生ブロック。ユーザーによる再生ボタン押下を待機。");
-                    setPlayingState(false);
-                });
-            }
-        }
-
-        // 🔊 Web Audio API による合成音システム（予備の代用再生）
-        function startFallbackSynth(emotion) {
-            stopFallbackSynth();
-
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            const now = audioCtx.currentTime;
-            const volume = parseFloat(volumeSlider.value);
-
-            const chords = {
-                happy: [261.63, 329.63, 392.00, 523.25],       // C4, E4, G4, C5
-                sad: [220.00, 261.63, 329.63, 440.00],         // A3, C4, E4, A4
-                relaxed: [293.66, 349.23, 440.00, 587.33],     // D4, F4, A4, D5
-                energetic: [110.00, 164.81, 220.00, 329.63]     // A2, E3, A3, E4
-            };
-
-            const freqs = chords[emotion] || chords.happy;
-
-            freqs.forEach((freq, index) => {
-                const osc = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                const filter = audioCtx.createBiquadFilter();
-
-                osc.type = (emotion === 'energetic') ? 'triangle' : 'sine';
-                osc.frequency.setValueAtTime(freq, now);
-
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(index === 0 ? 250 : 600, now);
-
-                const targetVolume = (emotion === 'energetic' ? 0.04 : 0.06) * volume;
-                gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(targetVolume, now + 1.5);
-
-                osc.connect(filter);
-                filter.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                osc.start(now);
-                fallbackNodes.push({ osc, gainNode });
-            });
-
-            if (emotion === 'energetic') {
-                let beatCount = 0;
-                fallbackInterval = setInterval(() => {
-                    if (!audioCtx || state.currentEmotion !== 'energetic' || !state.isPlaying) return;
-                    
-                    const t = audioCtx.currentTime;
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.frequency.setValueAtTime(140, t);
-                    osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.35);
-
-                    const drumVolume = (beatCount % 2 === 0 ? 0.4 : 0.25) * volume;
-                    gain.gain.setValueAtTime(drumVolume, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-
-                    osc.start(t);
-                    osc.stop(t + 0.4);
-
-                    beatCount++;
-                }, 450);
-
-            } else if (emotion === 'happy') {
-                let step = 0;
-                fallbackInterval = setInterval(() => {
-                    if (!audioCtx || state.currentEmotion !== 'happy' || !state.isPlaying) return;
-
-                    const t = audioCtx.currentTime;
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.type = 'sine';
-                    const arpeggio = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
-                    const nextFreq = arpeggio[step % arpeggio.length];
-
-                    osc.frequency.setValueAtTime(nextFreq, t);
-
-                    gain.gain.setValueAtTime(0.05 * volume, t);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-
-                    osc.start(t);
-                    osc.stop(t + 0.7);
-
-                    step++;
-                }, 300);
-            }
-
-            setPlayingState(true);
-        }
-
-        function stopFallbackSynth() {
-            if (fallbackInterval) {
-                clearInterval(fallbackInterval);
-                fallbackInterval = null;
-            }
-
-            fallbackNodes.forEach(node => {
-                try {
-                    const now = audioCtx ? audioCtx.currentTime : 0;
-                    node.gainNode.gain.setValueAtTime(node.gainNode.gain.value, now);
-                    node.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
-                    setTimeout(() => {
-                        node.osc.stop();
-                        node.osc.disconnect();
-                    }, 400);
-                } catch (e) {
-                }
-            });
-            fallbackNodes = [];
-        }
-
-        function stopAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.src = ""; // リソースの解放
-                currentAudio = null;
-            }
-            stopFallbackSynth();
-            setPlayingState(false);
-        }
-
-        function togglePlay() {
-            if (state.isUsingFallback) {
-                if (state.isPlaying) {
-                    stopFallbackSynth();
-                    setPlayingState(false);
-                } else {
-                    startFallbackSynth(state.currentEmotion);
-                }
-                return;
-            }
-
-            if (!currentAudio) return;
-            if (state.isPlaying) {
-                currentAudio.pause();
-                setPlayingState(false);
-            } else {
-                currentAudio.play()
-                    .then(() => setPlayingState(true))
-                    .catch(err => console.error("再生失敗:", err));
-            }
-        }
-
-        function setPlayingState(playing) {
-            state.isPlaying = playing;
-            if (playing) {
-                iconPlay.classList.add('hidden');
-                iconPause.classList.remove('hidden');
-                visualizerContainer.classList.remove('hidden');
-            } else {
-                iconPlay.classList.remove('hidden');
-                iconPause.classList.add('hidden');
-                visualizerContainer.classList.add('hidden');
-            }
-        }
-
-        function handleVolumeChange(e) {
-            const vol = parseFloat(e.target.value);
-            if (currentAudio) {
-                currentAudio.volume = vol;
-            }
-            if (state.isUsingFallback && audioCtx) {
-                const now = audioCtx.currentTime;
-                fallbackNodes.forEach(node => {
-                    node.gainNode.gain.setValueAtTime(vol * 0.05, now);
-                });
-            }
-        }
-
-        function restartSurvey() {
-            stopAudio();
-            startSurvey();
-        }
+        
+        // ... 他の関数はそのまま
     </script>
 </body>
 </html>

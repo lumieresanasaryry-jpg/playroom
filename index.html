@@ -98,7 +98,7 @@
         }
 
         .main-card {
-            background: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 32px;
@@ -221,7 +221,7 @@
         .empathy-message {
             font-size: 1rem;
             color: #2c3e50;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.55);
             padding: 24px;
             border-radius: 20px;
             margin-bottom: 24px;
@@ -506,7 +506,7 @@
             <!-- 寄り添い診断結果画面 -->
             <div id="stepMessage" class="hidden">
                 <h1>今日一日頑張ったあなたへ</h1>
-                <div id="closingMessage" style="font-size:1.05rem; color:#2c3e50; background:rgba(255,255,255,0.85); padding:18px 20px; border-radius:16px; margin-bottom:18px; line-height:1.9; text-align:center; border: 1px solid rgba(200,220,255,0.5);">
+                <div id="closingMessage" style="font-size:1.05rem; color:#2c3e50; background:rgba(255,255,255,0.55); padding:18px 20px; border-radius:16px; margin-bottom:18px; line-height:1.9; text-align:center; border: 1px solid rgba(200,220,255,0.5);">
                     <!-- ここにお疲れさまメッセージが入ります -->
                 </div>
                 <div id="empathyText" class="empathy-message">
@@ -526,7 +526,10 @@
             <div id="stepPlayer" class="hidden">
                 <div class="status-text" id="moodStatus">あなたの心に寄り添って</div>
                 <div class="sub-status" id="fileStatus">ココロ調律中...</div>
-                
+
+                <!-- 音楽再生中に表示するメッセージ -->
+                <div id="playerClosingMessage" style="font-size:0.92rem; color:#2c3e50; background:rgba(255,255,255,0.55); padding:14px 18px; border-radius:14px; margin-bottom:12px; line-height:1.85; text-align:center; border:1px solid rgba(200,220,255,0.5);"></div>
+
                 <!-- 波形ビジュアライザー -->
                 <div class="visualizer-container">
                     <canvas id="visualizerCanvas"></canvas>
@@ -797,6 +800,9 @@
             moodStatus.innerText = theme.title;
             fileStatus.innerText = theme.status + " を再生中...";
 
+            // プレイヤー画面にもメッセージを表示
+            document.getElementById("playerClosingMessage").innerHTML = theme.closing;
+
             // 実音源ファイル（MP3）の読み込み＆再生
             initSynthAndPlay();
         }
@@ -852,6 +858,7 @@
             const theme = moodThemes[finalMood];
             moodStatus.innerText = theme.title;
             fileStatus.innerText = theme.status + " に再調律しました";
+            document.getElementById("playerClosingMessage").innerHTML = theme.closing;
 
             // 背景イラストを滑らかに切り替え
             bgImageLayer.classList.remove("active");

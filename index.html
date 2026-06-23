@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>感情メロディプレイヤー - Emotion Melody Player</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 背景グラデーションのスムーズなアニメーション遷移 */
+        body {
+            transition: background-color 1.5s ease, color 1.5s ease;
+        }
+        .theme-default {
+            background-color: #f3f4f6; /* Gray 100 */
+            color: #1f2937; /* Gray 800 */
+        }
+        .theme-happy {
+            background-color: #fef3c7; /* Amber 100 */
+            color: #78350f; /* Amber 900 */
+        }
+        .theme-sad {
+            background-color: #e0f2fe; /* Sky 100 */
+            color: #0c4a6e; /* Sky 900 */
+        }
+        .theme-relaxed {
+            background-color: #d1fae5; /* Emerald 100 */
+            color: #064e3b; /* Emerald 900 */
+        }
+        .theme-energetic {
+            background-color: #fee2e2; /* Red 100 */
+            color: #7f1d1d; /* Red 900 */
+        }
+
+        /* 視覚的ビジュアライザー用の波紋アニメーション */
+        @keyframes ripple-effect {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
+        }
+        .ripple {
+            animation: ripple-effect 4s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+        }
+    </style>
+</head>
+<body class="theme-default min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-x-hidden">
+
+    <!-- ヘッダー -->
+    <header class="text-center py-4">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center justify-center gap-2">
+            <span>🎵</span> 感情メロディプレイヤー
+        </h1>
+        <p class="text-sm opacity-75 mt-2">今の気分を音楽と色彩で包み込むインタラクティブプレイヤー</p>
+    </header>
+
+    <!-- メインコンテンツ領域 -->
+    <main class="flex-grow flex items-center justify-center my-8 relative z-10 max-w-2xl mx-auto w-full">
+        
+        <!-- ビジュアルバックグラウンド（再生中のみ波紋を表示） -->
+        <div id="visualizer-container" class="absolute inset-0 pointer-events-none flex items-center justify-center hidden">
+            <div class="w-64 h-64 rounded-full border-4 border-current opacity-20 ripple absolute"></div>
+            <div class="w-64 h-64 rounded-full border-4 border-current opacity-20 ripple absolute" style="animation-delay: 1.3s;"></div>
+            <div class="w-64 h-64 rounded-full border-4 border-current opacity-20 ripple absolute" style="animation-delay: 2.6s;"></div>
+        </div>
+
+        <!-- アプリケーション本体カード -->
+        <div class="w-full bg-white/70 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-xl border border-white/50 transition-all duration-500">
+            
+            <!-- 1. スタート画面 -->
+            <div id="screen-start" class="text-center space-y-6">
+                <div class="text-7xl animate-bounce">✨</div>
+                <h2 class="text-2xl font-bold">今のあなたに寄り添う音楽を</h2>
+                <p class="text-gray-600 leading-relaxed">
+                    簡単な3つの質問に直感で答えるだけで、今のあなたの状態を分析し、ぴったりなオリジナルの音楽を奏でます。
+                </p>
+                <button id="btn-start" class="w-full md:w-auto px-8 py-4 bg-gray-950 text-white font-bold rounded-full hover:bg-gray-800 transition shadow-lg hover:shadow-xl active:scale-95">
+                    診断をはじめる
+                </button>
+            </div>
+
+            <!-- 2. 質問画面 -->
+            <div id="screen-question" class="hidden space-y-8">
+                <!-- 進捗バー -->
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progress-bar" class="bg-gray-800 h-2 rounded-full transition-all duration-300" style="width: 33%"></div>
+                </div>
+                <div class="flex justify-between items-center text-xs opacity-75">
+                    <span id="question-number">質問 1 / 3</span>
+                    <span>直感でお答えください</span>
+                </div>
+
+                <!-- 質問テキスト -->
+                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-center py-4 min-h-[4rem]">
+                    質問内容がここに入ります。
+                </h2>
+
+                <!-- 選択肢リスト -->
+                <div id="options-container" class="grid grid-cols-1 gap-4">
+                    <!-- ボタンはJSで生成 -->
+                </div>
+            </div>
+
+            <!-- 3. 結果 & 再生画面 -->
+            <div id="screen-result" class="hidden text-center space-y-6">
+                <div id="result-icon" class="text-8xl">☀️</div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest opacity-70">診断結果 : あなたの気分</span>
+                    <h2 id="result-title" class="text-3xl font-extrabold mt-1">ハッピー</h2>
+                </div>
+                
+                <p id="result-desc" class="text-base leading-relaxed max-w-md mx-auto">
+                    感情の解説がここに入ります。
+                </p>
+
+                <!-- フォールバック通知バナー (プレビュー環境でのみ表示されます) -->
+                <div id="fallback-notification" class="hidden text-xs bg-black/10 p-3 rounded-xl max-w-md mx-auto border border-black/5">
+                    ⚠️ <strong>プレビュー環境用音声:</strong> ローカルMP3ファイルが検出できないため、ブラウザシンセの自動生成音（エネルギッシュでは太鼓ビート風）で代用再生しています。GitHubからダウンロードした本番環境ではご自身のMP3が再生されます。
+                </div>
+
+                <!-- プレイヤーコントローラー -->
+                <div class="pt-6 border-t border-gray-900/10 space-y-4">
+                    <div class="flex justify-center items-center gap-6">
+                        <!-- 再生 / 一時停止ボタン -->
+                        <button id="btn-play-toggle" class="w-16 h-16 rounded-full bg-current flex items-center justify-center shadow-md active:scale-95 hover:opacity-90 transition">
+                            <!-- 再生アイコン（親テキストカラーの背景に白抜きで表示） -->
+                            <svg id="icon-play" class="w-8 h-8 text-white hidden" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <!-- 一時停止アイコン -->
+                            <svg id="icon-pause" class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- 音量スライダー -->
+                    <div class="flex items-center justify-center gap-3 max-w-xs mx-auto">
+                        <span class="text-xs">🔈</span>
+                        <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.7" class="w-full accent-current h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <span class="text-xs">🔊</span>
+                    </div>
+
+                    <p class="text-xs opacity-60">※ブラウザの仕様により、最初はミュート状態で再生される場合があります。</p>
+                </div>
+
+                <!-- 最初からやり直すボタン -->
+                <div class="pt-4">
+                    <button id="btn-restart" class="text-xs font-semibold underline hover:opacity-80">
+                        もう一度診断する
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- フッター -->
+    <footer class="text-center text-xs opacity-60 py-4">
+        <p>© 2026 感情メロディプレイヤー | あなただけの特別なサウンドスペース</p>
+    </footer>
+
+    <!-- アプリケーション・ロジック -->
+    <script>
+        // --- 状態管理 (State) ---
+        const state = {
+            currentQuestionIndex: 0,
+            scores: {
+                happy: 0,
+                sad: 0,
+                relaxed: 0,
+                energetic: 0
+            },
+            currentEmotion: 'happy',
+            isPlaying: false,
+            isUsingFallback: false
+        };
+
+        // --- 質問データ ---
+        const questions = [
+            {
+                text: "今のエネルギーレベルはどれくらいですか？",
+                options: [
+                    { label: "満ち溢れている！", scores: { energetic: 2, happy: 1 } },
+                    { label: "普通かな", scores: { relaxed: 1, neutral: 1 } },
+                    { label: "少し疲れている...", scores: { sad: 1, relaxed: 1 } }
+                ]
+            },
+            {
+                text: "外の天気はどうあってほしい気分ですか？",
+                options: [
+                    { label: "雲一つない快晴！", scores: { happy: 2, energetic: 1 } },
+                    { label: "静かに降る雨", scores: { sad: 2, relaxed: 1 } },
+                    { label: "穏やかな曇り空", scores: { relaxed: 2 } }
+                ]
+            },
+            {
+                text: "今、一番したいことは何ですか？",
+                options: [
+                    { label: "誰かと楽しくおしゃべり", scores: { happy: 2, energetic: 1 } },
+                    { label: "一人でゆっくり読書や映画", scores: { relaxed: 2, sad: 1 } },
+                    { label: "思いっきり運動して汗を流す", scores: { energetic: 2 } }
+                ]
+            }
+        ];
+
+        // --- 感情データ（テーマクラス、解説、再生ファイルパス） ---
+        const emotions = {
+            happy: {
+                themeClass: 'theme-happy',
+                label: 'ハッピー',
+                icon: '☀️',
+                desc: '心が晴れやかで、前向きなエネルギーに満ちていますね！弾むような明るいメロディをお届けします。',
+                audioSrc: 'assets/happy.mp3'
+            },
+            sad: {
+                themeClass: 'theme-sad',
+                label: 'メランコリー',
+                icon: '🌧️',
+                desc: '少し心が沈んでいる、または静かに自分と向き合いたい気分のようですね。優しく包み込むようなメロディをどうぞ。',
+                audioSrc: 'assets/sad.mp3'
+            },
+            relaxed: {
+                themeClass: 'theme-relaxed',
+                label: 'リラックス',
+                icon: '☕',
+                desc: '穏やかで落ち着いた状態ですね。このままゆったりと過ごせるような、心地よいアンビエント調の音を。',
+                audioSrc: 'assets/relaxed.mp3'
+            },
+            energetic: {
+                themeClass: 'theme-energetic',
+                label: 'エネルギッシュ',
+                icon: '🔥',
+                desc: '体中からパワーが湧き上がっていますね！大地の鼓動を思わせる、力強い太鼓とリズムセッションがあなたを鼓舞します！',
+                audioSrc: 'assets/energetic.mp3'
+            }
+        };
+
+        // --- オーディオインスタンス & Web Audio API フォールバック ---
+        let currentAudio = null;
+        let audioCtx = null;
+        let fallbackNodes = [];
+        let fallbackInterval = null;
+
+        // --- DOM要素 ---
+        const bodyEl = document.body;
+        const screenStart = document.getElementById('screen-start');
+        const screenQuestion = document.getElementById('screen-question');
+        const screenResult = document.getElementById('screen-result');
+        
+        const btnStart = document.getElementById('btn-start');
+        const btnRestart = document.getElementById('btn-restart');
+        const btnPlayToggle = document.getElementById('btn-play-toggle');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const volumeSlider = document.getElementById('volume-slider');
+        
+        const progressBar = document.getElementById('progress-bar');
+        const questionNumberText = document.getElementById('question-number');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        
+        const resultIcon = document.getElementById('result-icon');
+        const resultTitle = document.getElementById('result-title');
+        const resultDesc = document.getElementById('result-desc');
+        const visualizerContainer = document.getElementById('visualizer-container');
+        const fallbackNotification = document.getElementById('fallback-notification');
+
+        // --- イベントリスナーの登録 ---
+        btnStart.addEventListener('click', startSurvey);
+        btnRestart.addEventListener('click', restartSurvey);
+        btnPlayToggle.addEventListener('click', togglePlay);
+        volumeSlider.addEventListener('input', handleVolumeChange);
+
+        // --- 画面切り替え & ロジック ---
+
+        function startSurvey() {
+            state.currentQuestionIndex = 0;
+            state.scores = { happy: 0, sad: 0, relaxed: 0, energetic: 0 };
+            
+            // 背景テーマをデフォルト（グレー）に
+            bodyEl.className = 'theme-default min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-x-hidden';
+            
+            screenStart.classList.add('hidden');
+            screenResult.classList.add('hidden');
+            screenQuestion.classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const currentQuestion = questions[state.currentQuestionIndex];
+            
+            // 進捗の更新
+            const progressPercent = ((state.currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            questionNumberText.textContent = `質問 ${state.currentQuestionIndex + 1} / ${questions.length}`;
+            
+            // 質問文の挿入
+            questionText.textContent = currentQuestion.text;
+            
+            // 選択肢ボタンのクリアと生成
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = "w-full text-left p-5 rounded-2xl border-2 border-gray-200 hover:border-gray-800 hover:bg-gray-50/50 bg-white transition duration-200 font-medium flex justify-between items-center group active:scale-[0.98]";
+                button.innerHTML = `
+                    <span>${option.label}</span>
+                    <span class="opacity-0 group-hover:opacity-100 transition-opacity">➔</span>
+                `;
+                button.addEventListener('click', () => handleAnswer(option.scores));
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function handleAnswer(scores) {
+            // スコアを加算
+            for (const key in scores) {
+                if (state.scores[key] !== undefined) {
+                    state.scores[key] += scores[key];
+                }
+            }
+
+            state.currentQuestionIndex++;
+            if (state.currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                calculateResult();
+            }
+        }
+
+        function calculateResult() {
+            // 最もスコアの高かった感情を特定
+            let highestEmotion = 'happy';
+            let maxScore = -1;
+
+            for (const key in state.scores) {
+                if (state.scores[key] > maxScore) {
+                    maxScore = state.scores[key];
+                    highestEmotion = key;
+                }
+            }
+
+            state.currentEmotion = highestEmotion;
+            displayResult();
+        }
+
+        function displayResult() {
+            const emotionData = emotions[state.currentEmotion];
+            
+            // テーマ切り替え
+            bodyEl.className = `${emotionData.themeClass} min-h-screen flex flex-col justify-between p-6 md:p-12 font-sans overflow-x-hidden`;
+            
+            // コンテンツの流し込み
+            resultIcon.textContent = emotionData.icon;
+            resultTitle.textContent = emotionData.label;
+            resultDesc.textContent = emotionData.desc;
+            
+            screenQuestion.classList.add('hidden');
+            screenResult.classList.remove('hidden');
+
+            // 音楽プレイヤーの設定と再生開始
+            initAndPlayAudio(emotionData.audioSrc);
+        }
+
+        // --- オーディオ制御システム (HTML5 Audio ➔ Web Audio API ハイブリッド) ---
+
+        function initAndPlayAudio(src) {
+            stopAudio();
+            state.isUsingFallback = false;
+            fallbackNotification.classList.add('hidden');
+
+            currentAudio = new Audio(src);
+            currentAudio.loop = true;
+            currentAudio.volume = parseFloat(volumeSlider.value);
+
+            // 音量調節の追従
+            currentAudio.addEventListener('volumechange', () => {
+                volumeSlider.value = currentAudio.volume;
+            });
+
+            // ❌ MP3ファイルがロードできなかったとき（プレビュー環境等）のエラーハンドラー
+            currentAudio.addEventListener('error', (e) => {
+                console.warn(`ローカル音源 (${src}) の読み込みに失敗しました。Web Audio APIシンセにフォールバックします。`);
+                state.isUsingFallback = true;
+                fallbackNotification.classList.remove('hidden');
+                
+                // 代替合成音エンジンで音作りを開始
+                startFallbackSynth(state.currentEmotion);
+            });
+
+            // 再生開始をトライ
+            const playPromise = currentAudio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    setPlayingState(true);
+                }).catch(error => {
+                    console.log("自動再生が一時的に制限されました。ユーザー操作を待機します。:", error);
+                    setPlayingState(false);
+                });
+            }
+        }
+
+        // 🔊 Web Audio API による合成音システム（プレビュー用）
+        function startFallbackSynth(emotion) {
+            stopFallbackSynth();
+
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+            const volume = parseFloat(volumeSlider.value);
+
+            // 感情に合わせた和音 (コード)
+            const chords = {
+                happy: [261.63, 329.63, 392.00, 523.25],       // C4, E4, G4, C5 (明るいCメジャーコード)
+                sad: [220.00, 261.63, 329.63, 440.00],         // A3, C4, E4, A4 (哀愁のあるAマイナーコード)
+                relaxed: [293.66, 349.23, 440.00, 587.33],     // D4, F4, A4, D5 (浮遊感のあるDマイナー7)
+                energetic: [110.00, 164.81, 220.00, 329.63]     // A2, E3, A3, E4 (重厚感のある太鼓のベース用低音)
+            };
+
+            const freqs = chords[emotion] || chords.happy;
+
+            // 1. 持続する空間音（パッドシンセ）の構築
+            freqs.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                // エネルギッシュは少し温かみのある三角波、それ以外はソフトなサイン波
+                osc.type = (emotion === 'energetic') ? 'triangle' : 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+
+                // ローパスフィルターで不快な高音を抑え丸みを出す
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(index === 0 ? 250 : 600, now);
+
+                // 音量を最適化 (耳に優しいレベル、かつスライダー依存)
+                const targetVolume = (emotion === 'energetic' ? 0.04 : 0.06) * volume;
+                gainNode.gain.setValueAtTime(0, now);
+                // フェードインして突然大きな音が鳴るのを防ぐ
+                gainNode.gain.linearRampToValueAtTime(targetVolume, now + 1.5);
+
+                osc.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                osc.start(now);
+                fallbackNodes.push({ osc, gainNode });
+            });
+
+            // 2. 特徴的なリズム・ドラムパートのフォールバック
+            if (emotion === 'energetic') {
+                // 🔥 エネルギッシュの場合：大地の鼓動を模した重厚な「太鼓」のリズム
+                let beatCount = 0;
+                fallbackInterval = setInterval(() => {
+                    if (!audioCtx || state.currentEmotion !== 'energetic' || !state.isPlaying) return;
+                    
+                    const t = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    // 太鼓のドコドコというピッチ変化 (低周波数を急降下させる)
+                    osc.frequency.setValueAtTime(140, t);
+                    osc.frequency.exponentialRampToValueAtTime(0.01, t + 0.35);
+
+                    // リズムパターンによって音量を微調整して躍動感を出す
+                    const drumVolume = (beatCount % 2 === 0 ? 0.4 : 0.25) * volume;
+                    gain.gain.setValueAtTime(drumVolume, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+                    osc.start(t);
+                    osc.stop(t + 0.4);
+
+                    beatCount++;
+                }, 450); // 133BPM相当の軽快で力強いトライバルビート
+
+            } else if (emotion === 'happy') {
+                // ☀️ ハッピーの場合：ポロンポロンと輝くようなチャイムアルペジオ
+                let step = 0;
+                fallbackInterval = setInterval(() => {
+                    if (!audioCtx || state.currentEmotion !== 'happy' || !state.isPlaying) return;
+
+                    const t = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.type = 'sine';
+                    const arpeggio = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50]; // 明るい高音ペンタトニック
+                    const nextFreq = arpeggio[step % arpeggio.length];
+
+                    osc.frequency.setValueAtTime(nextFreq, t);
+
+                    gain.gain.setValueAtTime(0.05 * volume, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+
+                    osc.start(t);
+                    osc.stop(t + 0.7);
+
+                    step++;
+                }, 300);
+            }
+
+            setPlayingState(true);
+        }
+
+        // Web Audio APIの合成音を停止
+        function stopFallbackSynth() {
+            if (fallbackInterval) {
+                clearInterval(fallbackInterval);
+                fallbackInterval = null;
+            }
+
+            fallbackNodes.forEach(node => {
+                try {
+                    const now = audioCtx ? audioCtx.currentTime : 0;
+                    node.gainNode.gain.setValueAtTime(node.gainNode.gain.value, now);
+                    node.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+                    setTimeout(() => {
+                        node.osc.stop();
+                        node.osc.disconnect();
+                    }, 400);
+                } catch (e) {
+                    // すでに停止している場合のエラーを無視
+                }
+            });
+            fallbackNodes = [];
+        }
+
+        function stopAudio() {
+            // HTML5 Audioの完全停止
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            // 合成音フォールバックの完全停止
+            stopFallbackSynth();
+            setPlayingState(false);
+        }
+
+        function togglePlay() {
+            if (state.isUsingFallback) {
+                // フォールバック合成音時の再生トグル
+                if (state.isPlaying) {
+                    stopFallbackSynth();
+                    setPlayingState(false);
+                } else {
+                    startFallbackSynth(state.currentEmotion);
+                }
+                return;
+            }
+
+            // 通常のMP3ファイル時のトグル
+            if (!currentAudio) return;
+            if (state.isPlaying) {
+                currentAudio.pause();
+                setPlayingState(false);
+            } else {
+                currentAudio.play()
+                    .then(() => setPlayingState(true))
+                    .catch(err => console.error("再生に失敗しました:", err));
+            }
+        }
+
+        function setPlayingState(playing) {
+            state.isPlaying = playing;
+            if (playing) {
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+                visualizerContainer.classList.remove('hidden'); // ビジュアル波紋を表示
+            } else {
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+                visualizerContainer.classList.add('hidden'); // ビジュアル波紋を非表示
+            }
+        }
+
+        function handleVolumeChange(e) {
+            const vol = parseFloat(e.target.value);
+            if (currentAudio) {
+                currentAudio.volume = vol;
+            }
+            // Web Audio APIの再生ノード群のリアルタイム音量調節
+            if (state.isUsingFallback && audioCtx) {
+                const now = audioCtx.currentTime;
+                fallbackNodes.forEach(node => {
+                    node.gainNode.gain.setValueAtTime(vol * 0.05, now);
+                });
+            }
+        }
+
+        function restartSurvey() {
+            stopAudio();
+            startSurvey();
+        }
+    </script>
+</body>
+</html>

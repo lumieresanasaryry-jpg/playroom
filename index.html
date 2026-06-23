@@ -489,7 +489,7 @@
             <div id="stepQuiz" class="fade-in">
                 <!-- クイズの一番最初のヘッダーイメージ -->
                 <div class="header-image-container">
-                    <img src="image_19183b.png" alt="ココロ調律イメージ" class="header-img" onerror="this.src='image.png';">
+                    <img src="image.png" alt="ココロ調律イメージ" class="header-img">
                 </div>
 
                 <div class="question-number" id="qNumber">第 1 問 / 10</div>
@@ -744,7 +744,7 @@
             }
         }
 
-        // 各気分の診断メッセージ、イラスト画像(pic/*.png)、実音源ファイル(music/*.mp3)の設定
+        // 各気分の診断メッセージ、イラスト画像(*.png)、実音源ファイル(*.mp3)の設定
         const moodThemes = {
             happy: {
                 title: "ハッピー ＆ ポジティブ",
@@ -753,8 +753,8 @@
                 orb2: "#FF9100",
                 status: "爽快で前向きな調律",
                 subStatus: "心地よい高鳴りと光を編み込んだメロディ",
-                audioSrc: "music/happy.mp3",
-                bgImage: "pic/happy.png",
+                audioSrc: "happy.mp3",
+                bgImage: "happy.png",
                 desc: "今のあなたの心は、明るい陽だまりのようにキラキラと輝いています。小さな喜びを敏感に捉え、周りにも温かい光を分け与えるパワーがあります。そんなあなたの軽やかさをさらに輝かせる、ハッピーなメロディをお送りします。美しいイラストとお手元の輝く音源をお楽しみください。"
             },
             energetic: {
@@ -764,8 +764,8 @@
                 orb2: "#D50000",
                 status: "情熱を刺激する鼓動調律",
                 subStatus: "心拍と共鳴する前進的なパルス",
-                audioSrc: "music/energetic.mp3",
-                bgImage: "pic/energetic.png",
+                audioSrc: "energetic.mp3",
+                bgImage: "energetic.png",
                 desc: "今のあなたの心は、内側から燃え上がる強いエネルギーに満ちています。何かに挑戦したい、前に突き進みたいという意欲的な姿勢はとても素敵です。その高いモチベーションに共鳴し、あなたの背中をさらに力強く押し出す、エネルギッシュな音色を調律しました。前に突き進む追い風にしてください。"
             },
             relaxed: {
@@ -775,8 +775,8 @@
                 orb2: "#2E4053",
                 status: "心安らぐ静謐な調律",
                 subStatus: "穏やかな呼吸を促すアンビエントパッド",
-                audioSrc: "music/relaxed.mp3",
-                bgImage: "pic/relaxed.png",
+                audioSrc: "relaxed.mp3",
+                bgImage: "relaxed.png",
                 desc: "今のあなたの心は、風にそよぐ緑の木の葉や穏やかな凪の海のように、とても深く落ち着いています。ありのままの自分を受け入れ、自分のペースを守れている状態です。その健やかな安らぎをさらに深め、質の良い睡眠や瞑想へ誘うような、極上のリラックスアンビエントをお送りします。呼吸を調律しながらお聴きください。"
             },
             sad: {
@@ -786,8 +786,8 @@
                 orb2: "#34495E",
                 status: "心に寄り添う慈愛の調律",
                 subStatus: "涙を優しくすくい上げるような雨の音律",
-                audioSrc: "music/sad.mp3",
-                bgImage: "pic/sad.png",
+                audioSrc: "sad.mp3",
+                bgImage: "sad.png",
                 desc: "今のあなたは、心が少しデリケートになっていたり、静かに自分と向き合いたい時間なのかもしれません。それは心がリセットを求め、新しいエネルギーを蓄えようとする大切なステップです。その繊細で豊かな感受性にそっと寄り添い、悲しみを優しく包み込んで涙を洗い流してくれる、慈愛に満ちたヒーリング音律をお送りします。"
             }
         };
